@@ -507,6 +507,31 @@
     .pick-button:active:not(:disabled) { transform: translateY(0); }
     .pick-button:disabled { cursor: not-allowed; opacity: .48; box-shadow: none; }
 
+    .search-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 9px;
+      margin: -5px 0 17px;
+    }
+
+    .search-button {
+      min-height: 38px;
+      padding: 0 13px;
+      border: 1px solid #ead8c8;
+      border-radius: 11px;
+      background: rgba(255, 255, 255, .72);
+      color: #705642;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 750;
+      transition: background .18s, border-color .18s, transform .18s;
+    }
+
+    .search-button:hover:not(:disabled) { transform: translateY(-1px); border-color: #d9b89f; background: #fff; }
+    .search-button:focus-visible { outline: 3px solid rgba(240, 123, 79, .42); outline-offset: 3px; }
+    .search-button:disabled { cursor: not-allowed; opacity: .46; }
+
     .hint {
       margin: 15px 0 0;
       color: #9a8b7c;
@@ -730,6 +755,10 @@
           <p class="result-total" id="result-total" aria-live="polite">抽選後會顯示這組的合計金額</p>
           <p class="combination-count" id="combination-count" aria-live="polite">4 道 × 4 杯 = 16 種組合</p>
           <p class="result-help" id="result-help">按下按鈕，抽出今晚的一餐一飲。</p>
+          <div class="search-actions" aria-label="搜尋這組餐點和飲料">
+            <button class="search-button" id="google-search" type="button" disabled>用 Google 搜尋</button>
+            <button class="search-button" id="bing-search" type="button" disabled>用 Bing 搜尋</button>
+          </div>
           <button class="pick-button" id="pick-button" type="button">
             <span aria-hidden="true">✦</span><span>幫我決定！</span>
           </button>
@@ -791,6 +820,8 @@
         }
       };
       const pickButton = document.querySelector("#pick-button");
+      const googleSearchButton = document.querySelector("#google-search");
+      const bingSearchButton = document.querySelector("#bing-search");
       const resultMeal = document.querySelector("#result-meal");
       const resultDrink = document.querySelector("#result-drink");
       const resultHelp = document.querySelector("#result-help");
@@ -915,6 +946,8 @@
           combinationCount.setAttribute("aria-label", `預算 ${budget} 元，有 ${eligible.length} 種符合搭配，共 ${totalCombos} 種搭配`);
         }
         pickButton.disabled = mealTotal === 0 || drinkTotal === 0 || !budgetValid || eligible.length === 0;
+        googleSearchButton.disabled = !hasPicked || pickButton.disabled;
+        bingSearchButton.disabled = !hasPicked || pickButton.disabled;
 
         if (!mealTotal || !drinkTotal) {
           resultMeal.textContent = mealTotal ? "餐點已就位" : "等你加餐點";
@@ -1009,6 +1042,8 @@
         }) || weightedChoices[weightedChoices.length - 1];
         lastPick = chosen;
         hasPicked = true;
+        googleSearchButton.disabled = false;
+        bingSearchButton.disabled = false;
         resultMeal.textContent = chosen.meal.name;
         resultDrink.textContent = chosen.drink.name;
         resultTotal.textContent = isValidPrice(chosen.meal.price) && isValidPrice(chosen.drink.price)
@@ -1019,6 +1054,18 @@
         void resultInner.offsetWidth;
         resultInner.classList.add("draw-again");
       });
+
+      function searchSelectedPair(engine) {
+        if (!lastPick || !hasPicked) return;
+        const query = `${lastPick.meal.name} ${lastPick.drink.name} 附近`;
+        const searchUrl = engine === "google"
+          ? `https://www.google.com/search?q=${encodeURIComponent(query)}`
+          : `https://www.bing.com/search?q=${encodeURIComponent(query)}`;
+        window.open(searchUrl, "_blank", "noopener,noreferrer");
+      }
+
+      googleSearchButton.addEventListener("click", () => searchSelectedPair("google"));
+      bingSearchButton.addEventListener("click", () => searchSelectedPair("bing"));
 
       renderAll();
     })();
