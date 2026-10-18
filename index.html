@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#fbf7ef">
-  <meta name="description" content="把今晚的選擇交給小飯糰，幫你從餐點清單中抽出一個答案。">
+  <meta name="description" content="搭配餐點和飲料，還能設定預算，讓小飯糰幫你決定今晚吃喝什麼。">
   <title>今晚吃什麼？｜小飯糰幫你決定</title>
   <style>
     :root {
@@ -208,6 +208,11 @@
       transition: border-color .18s, box-shadow .18s;
     }
 
+    .add-form input[name="item"] { flex: 1 1 0; }
+    .add-form input[type="number"] { flex: 0 0 68px; padding: 0 8px; }
+    .price-unit { color: #94897d; font-size: 11px; }
+    .price-note { margin: 7px 0 0; color: #9a9084; font-size: 10px; }
+
     .add-form input::placeholder { color: #aaa196; }
 
     .add-form input:focus {
@@ -217,7 +222,7 @@
 
     .add-button {
       flex: none;
-      width: 47px;
+      width: 44px;
       height: 46px;
       border: 0;
       border-radius: 12px;
@@ -285,6 +290,15 @@
       font-weight: 650;
       text-overflow: ellipsis;
       white-space: nowrap;
+    }
+
+    .meal-details { min-width: 0; overflow: hidden; }
+
+    .meal-price {
+      display: block;
+      margin-top: 2px;
+      color: #978b7c;
+      font-size: 11px;
     }
 
     .remove-button {
@@ -431,6 +445,14 @@
 
     .combination-count strong { color: #a65335; }
 
+    .result-total {
+      min-height: 18px;
+      margin: 0 0 8px;
+      color: #8d715a;
+      font-size: 12px;
+      font-weight: 750;
+    }
+
     .result-help {
       min-height: 24px;
       margin: 8px 0 21px;
@@ -470,6 +492,61 @@
       margin: 15px 0 0;
       color: #9a8b7c;
       font-size: 11px;
+      line-height: 1.6;
+    }
+
+    .budget-control {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 6px 12px;
+      max-width: 310px;
+      margin: 18px auto 0;
+      padding: 12px 14px;
+      border: 1px solid rgba(221, 177, 143, .42);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, .48);
+      text-align: left;
+    }
+
+    .budget-label {
+      color: #725e4d;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .budget-input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #8d715a;
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .budget-input {
+      width: 92px;
+      height: 36px;
+      padding: 0 9px;
+      border: 1px solid #e9d9c7;
+      border-radius: 9px;
+      outline: none;
+      background: #fffdf9;
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    .budget-input:focus {
+      border-color: #eda783;
+      box-shadow: 0 0 0 3px rgba(240, 123, 79, .12);
+    }
+
+    .budget-note {
+      grid-column: 1 / -1;
+      margin: 0;
+      color: #9a8b7c;
+      font-size: 10px;
+      line-height: 1.5;
     }
 
     .toast {
@@ -534,6 +611,8 @@
       .top-note { font-size: 11px; }
       .list-panel { padding: 18px; }
       .result-panel { min-height: 330px; padding: 23px; }
+      .add-form { gap: 6px; }
+      .add-form input[type="number"] { flex-basis: 64px; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -570,9 +649,13 @@
 
           <form class="add-form" id="meal-form">
             <label class="visually-hidden" for="meal-input">輸入想吃的餐點</label>
-            <input id="meal-input" name="meal" maxlength="30" placeholder="例如：巷口的咖哩飯" autocomplete="off">
+            <input id="meal-input" name="item" maxlength="30" placeholder="例如：巷口的咖哩飯" autocomplete="off">
+            <label class="visually-hidden" for="meal-price">餐點價格，0 到 1000 元，可留空</label>
+            <input id="meal-price" type="number" min="0" max="1000" step="1" inputmode="numeric" aria-label="餐點價格，0 到 1000 元，可留空">
+            <span class="price-unit" aria-hidden="true">元</span>
             <button class="add-button" type="submit" aria-label="加入餐點" title="加入餐點">+</button>
           </form>
+          <p class="price-note">金額 0–1000 元；沒有價格可以先留空</p>
 
           <div class="list-label">
             <span>餐點清單</span>
@@ -593,9 +676,13 @@
 
           <form class="add-form" id="drink-form">
             <label class="visually-hidden" for="drink-input">輸入想喝的飲料</label>
-            <input id="drink-input" name="drink" maxlength="30" placeholder="例如：微糖珍珠奶茶" autocomplete="off">
+            <input id="drink-input" name="item" maxlength="30" placeholder="例如：微糖珍珠奶茶" autocomplete="off">
+            <label class="visually-hidden" for="drink-price">飲料價格，0 到 1000 元，可留空</label>
+            <input id="drink-price" type="number" min="0" max="1000" step="1" inputmode="numeric" aria-label="飲料價格，0 到 1000 元，可留空">
+            <span class="price-unit" aria-hidden="true">元</span>
             <button class="add-button" type="submit" aria-label="加入飲料" title="加入飲料">+</button>
           </form>
+          <p class="price-note">金額 0–1000 元；沒有價格可以先留空</p>
 
           <div class="list-label">
             <span>飲料清單</span>
@@ -621,12 +708,21 @@
               <p class="result-drink" id="result-drink">準備搭配</p>
             </div>
           </div>
+          <p class="result-total" id="result-total" aria-live="polite">抽選後會顯示這組的合計金額</p>
           <p class="combination-count" id="combination-count" aria-live="polite">4 道 × 4 杯 = 16 種組合</p>
           <p class="result-help" id="result-help">按下按鈕，抽出今晚的一餐一飲。</p>
           <button class="pick-button" id="pick-button" type="button">
             <span aria-hidden="true">✦</span><span>幫我決定！</span>
           </button>
-          <p class="hint">不喜歡這組搭配？再抽一次就好。</p>
+          <div class="budget-control">
+            <label class="budget-label" for="budget-input">這次最多能花</label>
+            <div class="budget-input-wrap">
+              <input class="budget-input" id="budget-input" type="number" min="0" step="1" inputmode="numeric" aria-describedby="budget-note">
+              <span>元</span>
+            </div>
+            <p class="budget-note" id="budget-note">留白代表不限制；填寫後，只抽選有價格且合計不超過上限的搭配。</p>
+          </div>
+          <p class="hint">金額沒填的品項不會參與預算篩選；預算留白則自由抽選。</p>
         </div>
       </section>
     </section>
@@ -641,10 +737,16 @@
         meals: {
           label: "餐點",
           unit: "道",
-          items: ["日式咖哩飯", "牛肉麵", "石鍋拌飯", "巷口滷肉飯"],
+          items: [
+            { name: "日式咖哩飯", price: 140 },
+            { name: "牛肉麵", price: 100 },
+            { name: "石鍋拌飯", price: 160 },
+            { name: "巷口滷肉飯", price: 80 }
+          ],
           list: document.querySelector("#meal-list"),
           form: document.querySelector("#meal-form"),
           input: document.querySelector("#meal-input"),
+          priceInput: document.querySelector("#meal-price"),
           count: document.querySelector("#meal-count"),
           empty: document.querySelector("#meal-empty"),
           clear: document.querySelector("#clear-meals"),
@@ -653,10 +755,16 @@
         drinks: {
           label: "飲料",
           unit: "杯",
-          items: ["冬瓜茶", "無糖綠茶", "珍珠奶茶", "檸檬紅茶"],
+          items: [
+            { name: "冬瓜茶", price: 35 },
+            { name: "無糖綠茶", price: 30 },
+            { name: "珍珠奶茶", price: 80 },
+            { name: "檸檬紅茶", price: 45 }
+          ],
           list: document.querySelector("#drink-list"),
           form: document.querySelector("#drink-form"),
           input: document.querySelector("#drink-input"),
+          priceInput: document.querySelector("#drink-price"),
           count: document.querySelector("#drink-count"),
           empty: document.querySelector("#drink-empty"),
           clear: document.querySelector("#clear-drinks"),
@@ -667,8 +775,10 @@
       const resultMeal = document.querySelector("#result-meal");
       const resultDrink = document.querySelector("#result-drink");
       const resultHelp = document.querySelector("#result-help");
+      const resultTotal = document.querySelector("#result-total");
       const resultInner = document.querySelector("#result-inner");
       const combinationCount = document.querySelector("#combination-count");
+      const budgetInput = document.querySelector("#budget-input");
       const toast = document.querySelector("#toast");
       let toastTimer;
       let lastPick = null;
@@ -683,19 +793,27 @@
 
       function renderCategory(category) {
         category.list.replaceChildren();
-        category.items.forEach((itemName, index) => {
+        category.items.forEach((option, index) => {
           const item = document.createElement("li");
           item.className = "meal-item";
 
+          const details = document.createElement("div");
+          details.className = "meal-details";
+
           const name = document.createElement("span");
           name.className = "meal-name";
-          name.textContent = itemName;
+          name.textContent = option.name;
+
+          const price = document.createElement("span");
+          price.className = "meal-price";
+          price.textContent = isValidPrice(option.price) ? `${option.price} 元` : "未填價格";
+          details.append(name, price);
 
           const remove = document.createElement("button");
           remove.className = "remove-button";
           remove.type = "button";
           remove.textContent = "×";
-          remove.setAttribute("aria-label", `移除${itemName}`);
+          remove.setAttribute("aria-label", `移除${option.name}`);
           remove.addEventListener("click", () => {
             category.items.splice(index, 1);
             lastPick = null;
@@ -703,7 +821,7 @@
             renderAll();
           });
 
-          item.append(name, remove);
+          item.append(details, remove);
           category.list.append(item);
         });
 
@@ -716,27 +834,71 @@
         category.clear.hidden = total === 0;
       }
 
+      function isValidPrice(price) {
+        return Number.isInteger(price) && price >= 0 && price <= 1000;
+      }
+
+      function getCombinations() {
+        const meals = categories.meals.items;
+        const drinks = categories.drinks.items;
+        const all = meals.flatMap((meal) => drinks.map((drink) => ({ meal, drink })));
+        const rawBudget = budgetInput.value.trim();
+        if (!rawBudget) return { all, eligible: all, budgetEnabled: false, budgetValid: true, budget: null };
+
+        const budget = Number(rawBudget);
+        const budgetValid = Number.isInteger(budget) && budget >= 0;
+        if (!budgetValid) return { all, eligible: [], budgetEnabled: true, budgetValid: false, budget };
+
+        const eligible = all.filter(({ meal, drink }) =>
+          isValidPrice(meal.price) && isValidPrice(drink.price) && meal.price + drink.price <= budget
+        );
+        return { all, eligible, budgetEnabled: true, budgetValid: true, budget };
+      }
+
       function renderAll() {
         Object.values(categories).forEach(renderCategory);
         const mealTotal = categories.meals.items.length;
         const drinkTotal = categories.drinks.items.length;
-        const totalCombos = mealTotal * drinkTotal;
-        combinationCount.innerHTML = `${mealTotal} 道 × ${drinkTotal} 杯 = <strong>${totalCombos} 種組合</strong>`;
-        combinationCount.setAttribute("aria-label", `${mealTotal} 道餐點乘以 ${drinkTotal} 杯飲料，共 ${totalCombos} 種組合`);
-        pickButton.disabled = mealTotal === 0 || drinkTotal === 0;
+        const { all, eligible, budgetEnabled, budgetValid, budget } = getCombinations();
+        const totalCombos = all.length;
+        if (!budgetEnabled) {
+          combinationCount.innerHTML = `${mealTotal} 道 × ${drinkTotal} 杯 = <strong>${totalCombos} 種組合</strong>`;
+          combinationCount.setAttribute("aria-label", `${mealTotal} 道餐點乘以 ${drinkTotal} 杯飲料，共 ${totalCombos} 種組合`);
+        } else if (!budgetValid) {
+          combinationCount.textContent = "預算請填 0 元以上的整數";
+          combinationCount.setAttribute("aria-label", "預算需為 0 元以上的整數");
+        } else {
+          combinationCount.innerHTML = `預算 ${budget} 元：<strong>${eligible.length} 組可選</strong>／共 ${totalCombos} 組`;
+          combinationCount.setAttribute("aria-label", `預算 ${budget} 元，有 ${eligible.length} 種符合搭配，共 ${totalCombos} 種搭配`);
+        }
+        pickButton.disabled = mealTotal === 0 || drinkTotal === 0 || !budgetValid || eligible.length === 0;
 
         if (!mealTotal || !drinkTotal) {
           resultMeal.textContent = mealTotal ? "餐點已就位" : "等你加餐點";
           resultDrink.textContent = drinkTotal ? "飲料已就位" : "等你加飲料";
+          resultTotal.textContent = "先準備餐點和飲料，才知道搭配金額。";
           resultHelp.textContent = !mealTotal && !drinkTotal
             ? "各加一種餐點和飲料，小飯糰才能開始搭配。"
             : !mealTotal
               ? "再加一道餐點，就能抽出完整搭配。"
               : "再加一杯飲料，就能抽出完整搭配。";
+        } else if (!budgetValid) {
+          resultMeal.textContent = "預算格式不正確";
+          resultDrink.textContent = "請輸入整數";
+          resultTotal.textContent = "請先修正預算。";
+          resultHelp.textContent = "預算上限需填 0 元以上的整數。";
+        } else if (budgetEnabled && eligible.length === 0) {
+          resultMeal.textContent = "找不到合適搭配";
+          resultDrink.textContent = "試著調整預算";
+          resultTotal.textContent = "目前沒有符合預算的組合。";
+          resultHelp.textContent = "可能是價格未填，或所有搭配都超過預算。";
         } else if (!hasPicked) {
           resultMeal.textContent = "準備抽選";
           resultDrink.textContent = "準備搭配";
-          resultHelp.textContent = "按下按鈕，抽出今晚的一餐一飲。";
+          resultTotal.textContent = "抽選後會顯示這組的合計金額。";
+          resultHelp.textContent = budgetEnabled
+            ? "只會從已填價格且符合預算的搭配中抽選。"
+            : "按下按鈕，抽出今晚的一餐一飲。";
         }
       }
 
@@ -744,18 +906,26 @@
         category.form.addEventListener("submit", (event) => {
           event.preventDefault();
           const value = category.input.value.trim();
+          const rawPrice = category.priceInput.value.trim();
+          const price = rawPrice ? Number(rawPrice) : null;
           if (!value) {
             showToast(`先寫下一${category.unit}${category.label}吧！`);
             category.input.focus();
             return;
           }
-          if (category.items.some((item) => item.toLocaleLowerCase() === value.toLocaleLowerCase())) {
+          if (rawPrice && !isValidPrice(price)) {
+            showToast("價格請填 0 到 1000 的整數，或留空。");
+            category.priceInput.focus();
+            return;
+          }
+          if (category.items.some((item) => item.name.toLocaleLowerCase() === value.toLocaleLowerCase())) {
             showToast(`這${category.label}已經在清單裡囉！`);
             category.input.select();
             return;
           }
-          category.items.push(value);
+          category.items.push({ name: value, price });
           category.input.value = "";
+          category.priceInput.value = "";
           lastPick = null;
           hasPicked = false;
           renderAll();
@@ -771,20 +941,26 @@
         });
       });
 
-      pickButton.addEventListener("click", () => {
-        const meals = categories.meals.items;
-        const drinks = categories.drinks.items;
-        if (!meals.length || !drinks.length) return;
+      budgetInput.addEventListener("input", () => {
+        lastPick = null;
+        hasPicked = false;
+        renderAll();
+      });
 
-        const combinations = meals.flatMap((meal) => drinks.map((drink) => ({ meal, drink })));
-        const choices = combinations.length > 1
-          ? combinations.filter((pair) => pair.meal !== lastPick?.meal || pair.drink !== lastPick?.drink)
-          : combinations;
+      pickButton.addEventListener("click", () => {
+        const { eligible } = getCombinations();
+        if (!eligible.length) return;
+        const choices = eligible.length > 1
+          ? eligible.filter((pair) => pair.meal.name !== lastPick?.meal.name || pair.drink.name !== lastPick?.drink.name)
+          : eligible;
         const chosen = choices[Math.floor(Math.random() * choices.length)];
         lastPick = chosen;
         hasPicked = true;
-        resultMeal.textContent = chosen.meal;
-        resultDrink.textContent = chosen.drink;
+        resultMeal.textContent = chosen.meal.name;
+        resultDrink.textContent = chosen.drink.name;
+        resultTotal.textContent = isValidPrice(chosen.meal.price) && isValidPrice(chosen.drink.price)
+          ? `合計 ${chosen.meal.price + chosen.drink.price} 元`
+          : "這組有品項尚未填價格。";
         resultHelp.textContent = "今晚就決定是這組了！祝你吃得開心。";
         resultInner.classList.remove("draw-again");
         void resultInner.offsetWidth;
