@@ -150,6 +150,12 @@
 
     .list-panel { padding: 26px; }
 
+    .choice-group + .choice-group {
+      margin-top: 24px;
+      padding-top: 22px;
+      border-top: 1px solid var(--line);
+    }
+
     .panel-heading {
       display: flex;
       align-items: flex-start;
@@ -254,7 +260,7 @@
     .meal-list {
       display: grid;
       gap: 8px;
-      max-height: 286px;
+      max-height: 168px;
       overflow: auto;
       padding: 1px 3px 2px 0;
       list-style: none;
@@ -361,16 +367,69 @@
       letter-spacing: .16em;
     }
 
-    .result-name {
-      min-height: 48px;
-      margin: 9px 0 0;
+    .result-pair {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+      align-items: center;
+      gap: 9px;
+      margin: 18px 0 12px;
+    }
+
+    .pair-item {
+      display: flex;
+      min-width: 0;
+      min-height: 84px;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 12px 8px;
+      border: 1px solid rgba(255, 255, 255, .9);
+      border-radius: 15px;
+      background: rgba(255, 255, 255, .72);
+      box-shadow: 0 5px 14px rgba(133, 83, 42, .06);
+    }
+
+    .pair-label {
+      color: #a28b75;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .12em;
+    }
+
+    .result-name, .result-drink {
+      max-width: 100%;
+      min-height: 27px;
+      margin: 0;
       color: #473a2f;
-      font-size: clamp(25px, 3vw, 34px);
+      font-size: clamp(15px, 2vw, 19px);
       font-weight: 850;
-      letter-spacing: -.04em;
-      line-height: 1.35;
+      letter-spacing: -.035em;
+      line-height: 1.4;
       overflow-wrap: anywhere;
     }
+
+    .pair-plus {
+      color: var(--orange);
+      font-size: 21px;
+      font-weight: 800;
+    }
+
+    .combination-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding: 7px 11px;
+      border: 1px solid rgba(221, 177, 143, .42);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .45);
+      color: #8d715a;
+      font-size: 11px;
+      font-weight: 750;
+    }
+
+    .combination-count strong { color: #a65335; }
 
     .result-help {
       min-height: 24px;
@@ -444,7 +503,7 @@
     }
 
     .draw-again .mascot { animation: wiggle .55s ease; }
-    .draw-again .result-name { animation: reveal .35s ease both; }
+    .draw-again .result-name, .draw-again .result-drink { animation: reveal .35s ease both; }
 
     @keyframes pop-in {
       from { opacity: 0; transform: translateY(5px); }
@@ -467,7 +526,7 @@
       .page-shell { width: min(540px, calc(100% - 30px)); padding-top: 19px; }
       .topbar { margin-bottom: 34px; }
       .workspace { grid-template-columns: 1fr; }
-      .result-panel { min-height: 355px; order: -1; }
+      .result-panel { min-height: 380px; order: -1; }
       .list-panel { padding: 22px; }
     }
 
@@ -495,43 +554,79 @@
     <section class="intro" id="top" aria-labelledby="page-title">
       <div class="eyebrow"><span aria-hidden="true">✦</span> DINNER DECIDER <span aria-hidden="true">✦</span></div>
       <h1 id="page-title">今晚吃<span class="title-accent">什麼？</span></h1>
-      <p>把腦中的選項放進清單，剩下的就交給小飯糰。<br>少一點煩惱，多一點期待開飯的心情。</p>
+      <p>各選一道餐點和一杯飲料，剩下的就交給小飯糰。<br>兩份清單自由搭配，讓今晚多一點期待。</p>
     </section>
 
     <section class="workspace" aria-label="晚餐抽選器">
-      <section class="panel list-panel" aria-labelledby="list-title">
-        <div class="panel-heading">
-          <div>
-            <h2 id="list-title">今天想吃的</h2>
-            <p>先收集幾個選項，選擇困難就交給我！</p>
+      <section class="panel list-panel" aria-label="餐點和飲料選項">
+        <section class="choice-group" aria-labelledby="meal-title">
+          <div class="panel-heading">
+            <div>
+              <h2 id="meal-title">選一道餐點</h2>
+              <p>今晚想吃什麼？</p>
+            </div>
+            <span class="count" id="meal-count" aria-label="餐點數量">4 道</span>
           </div>
-          <span class="count" id="meal-count" aria-label="餐點數量">4 道</span>
-        </div>
 
-        <form class="add-form" id="add-form">
-          <label class="visually-hidden" for="meal-input">輸入想吃的餐點</label>
-          <input id="meal-input" name="meal" maxlength="30" placeholder="例如：巷口的咖哩飯" autocomplete="off">
-          <button class="add-button" type="submit" aria-label="加入餐點" title="加入餐點">+</button>
-        </form>
+          <form class="add-form" id="meal-form">
+            <label class="visually-hidden" for="meal-input">輸入想吃的餐點</label>
+            <input id="meal-input" name="meal" maxlength="30" placeholder="例如：巷口的咖哩飯" autocomplete="off">
+            <button class="add-button" type="submit" aria-label="加入餐點" title="加入餐點">+</button>
+          </form>
 
-        <div class="list-label">
-          <span>你的候選清單</span>
-          <button class="clear-button" id="clear-button" type="button">全部清除</button>
-        </div>
-        <ul class="meal-list" id="meal-list" aria-label="候選餐點"></ul>
-        <div class="empty-list" id="empty-list" hidden>清單還空空的，先加一道你想吃的吧。<br>也可以直接試試下面的範例餐點！</div>
+          <div class="list-label">
+            <span>餐點清單</span>
+            <button class="clear-button" id="clear-meals" type="button">清除</button>
+          </div>
+          <ul class="meal-list" id="meal-list" aria-label="候選餐點"></ul>
+          <div class="empty-list" id="meal-empty" hidden>先加一道你想吃的餐點吧。</div>
+        </section>
+
+        <section class="choice-group" aria-labelledby="drink-title">
+          <div class="panel-heading">
+            <div>
+              <h2 id="drink-title">再選一杯飲料</h2>
+              <p>喜歡的飲料也放進來！</p>
+            </div>
+            <span class="count" id="drink-count" aria-label="飲料數量">4 杯</span>
+          </div>
+
+          <form class="add-form" id="drink-form">
+            <label class="visually-hidden" for="drink-input">輸入想喝的飲料</label>
+            <input id="drink-input" name="drink" maxlength="30" placeholder="例如：微糖珍珠奶茶" autocomplete="off">
+            <button class="add-button" type="submit" aria-label="加入飲料" title="加入飲料">+</button>
+          </form>
+
+          <div class="list-label">
+            <span>飲料清單</span>
+            <button class="clear-button" id="clear-drinks" type="button">清除</button>
+          </div>
+          <ul class="meal-list" id="drink-list" aria-label="候選飲料"></ul>
+          <div class="empty-list" id="drink-empty" hidden>先加一杯你想喝的飲料吧。</div>
+        </section>
       </section>
 
       <section class="panel result-panel" aria-labelledby="result-kicker">
         <div class="result-inner" id="result-inner">
-          <div class="mascot" aria-hidden="true">🍙</div>
-          <p class="result-kicker" id="result-kicker">小飯糰的晚餐提案</p>
-          <p class="result-name" id="result-name" aria-live="polite">準備好要開飯了嗎？</p>
-          <p class="result-help" id="result-help">加入或保留餐點，按下按鈕揭曉今晚的答案。</p>
+          <div class="mascot" aria-hidden="true">🍱</div>
+          <p class="result-kicker" id="result-kicker">今晚的幸運搭配</p>
+          <div class="result-pair" aria-live="polite" aria-atomic="true">
+            <div class="pair-item">
+              <span class="pair-label">餐點</span>
+              <p class="result-name" id="result-meal">準備抽選</p>
+            </div>
+            <span class="pair-plus" aria-hidden="true">+</span>
+            <div class="pair-item">
+              <span class="pair-label">飲料</span>
+              <p class="result-drink" id="result-drink">準備搭配</p>
+            </div>
+          </div>
+          <p class="combination-count" id="combination-count" aria-live="polite">4 道 × 4 杯 = 16 種組合</p>
+          <p class="result-help" id="result-help">按下按鈕，抽出今晚的一餐一飲。</p>
           <button class="pick-button" id="pick-button" type="button">
             <span aria-hidden="true">✦</span><span>幫我決定！</span>
           </button>
-          <p class="hint">不喜歡這個答案？再抽一次就好。</p>
+          <p class="hint">不喜歡這組搭配？再抽一次就好。</p>
         </div>
       </section>
     </section>
@@ -542,20 +637,42 @@
 
   <script>
     (() => {
-      const meals = ["日式咖哩飯", "牛肉麵", "石鍋拌飯", "巷口滷肉飯"];
-      const list = document.querySelector("#meal-list");
-      const form = document.querySelector("#add-form");
-      const input = document.querySelector("#meal-input");
-      const count = document.querySelector("#meal-count");
-      const empty = document.querySelector("#empty-list");
-      const clearButton = document.querySelector("#clear-button");
+      const categories = {
+        meals: {
+          label: "餐點",
+          unit: "道",
+          items: ["日式咖哩飯", "牛肉麵", "石鍋拌飯", "巷口滷肉飯"],
+          list: document.querySelector("#meal-list"),
+          form: document.querySelector("#meal-form"),
+          input: document.querySelector("#meal-input"),
+          count: document.querySelector("#meal-count"),
+          empty: document.querySelector("#meal-empty"),
+          clear: document.querySelector("#clear-meals"),
+          emptyMessage: "先加一道你想吃的餐點吧。"
+        },
+        drinks: {
+          label: "飲料",
+          unit: "杯",
+          items: ["冬瓜茶", "無糖綠茶", "珍珠奶茶", "檸檬紅茶"],
+          list: document.querySelector("#drink-list"),
+          form: document.querySelector("#drink-form"),
+          input: document.querySelector("#drink-input"),
+          count: document.querySelector("#drink-count"),
+          empty: document.querySelector("#drink-empty"),
+          clear: document.querySelector("#clear-drinks"),
+          emptyMessage: "先加一杯你想喝的飲料吧。"
+        }
+      };
       const pickButton = document.querySelector("#pick-button");
-      const resultName = document.querySelector("#result-name");
+      const resultMeal = document.querySelector("#result-meal");
+      const resultDrink = document.querySelector("#result-drink");
       const resultHelp = document.querySelector("#result-help");
       const resultInner = document.querySelector("#result-inner");
+      const combinationCount = document.querySelector("#combination-count");
       const toast = document.querySelector("#toast");
       let toastTimer;
-      let lastPick = "";
+      let lastPick = null;
+      let hasPicked = false;
 
       function showToast(message) {
         toast.textContent = message;
@@ -564,87 +681,117 @@
         toastTimer = window.setTimeout(() => toast.classList.remove("is-visible"), 2200);
       }
 
-      function renderMeals() {
-        list.replaceChildren();
-        meals.forEach((meal, index) => {
+      function renderCategory(category) {
+        category.list.replaceChildren();
+        category.items.forEach((itemName, index) => {
           const item = document.createElement("li");
           item.className = "meal-item";
 
           const name = document.createElement("span");
           name.className = "meal-name";
-          name.textContent = meal;
+          name.textContent = itemName;
 
           const remove = document.createElement("button");
           remove.className = "remove-button";
           remove.type = "button";
           remove.textContent = "×";
-          remove.setAttribute("aria-label", `移除${meal}`);
+          remove.setAttribute("aria-label", `移除${itemName}`);
           remove.addEventListener("click", () => {
-            meals.splice(index, 1);
-            if (lastPick === meal) lastPick = "";
-            renderMeals();
+            category.items.splice(index, 1);
+            lastPick = null;
+            hasPicked = false;
+            renderAll();
           });
 
           item.append(name, remove);
-          list.append(item);
+          category.list.append(item);
         });
 
-        const total = meals.length;
-        count.textContent = `${total} 道`;
-        count.setAttribute("aria-label", `目前有 ${total} 道餐點`);
-        empty.hidden = total !== 0;
-        list.hidden = total === 0;
-        clearButton.hidden = total === 0;
-        pickButton.disabled = total === 0;
+        const total = category.items.length;
+        category.count.textContent = `${total} ${category.unit}`;
+        category.count.setAttribute("aria-label", `目前有 ${total} ${category.unit}${category.label}`);
+        category.empty.textContent = category.emptyMessage;
+        category.empty.hidden = total !== 0;
+        category.list.hidden = total === 0;
+        category.clear.hidden = total === 0;
+      }
 
-        if (total === 0) {
-          resultName.textContent = "清單空空的";
-          resultHelp.textContent = "加一道餐點進來，小飯糰就能開始抽選。";
-        } else if (resultName.textContent === "清單空空的") {
-          resultName.textContent = "準備好要開飯了嗎？";
-          resultHelp.textContent = "按下按鈕，揭曉今晚的答案。";
+      function renderAll() {
+        Object.values(categories).forEach(renderCategory);
+        const mealTotal = categories.meals.items.length;
+        const drinkTotal = categories.drinks.items.length;
+        const totalCombos = mealTotal * drinkTotal;
+        combinationCount.innerHTML = `${mealTotal} 道 × ${drinkTotal} 杯 = <strong>${totalCombos} 種組合</strong>`;
+        combinationCount.setAttribute("aria-label", `${mealTotal} 道餐點乘以 ${drinkTotal} 杯飲料，共 ${totalCombos} 種組合`);
+        pickButton.disabled = mealTotal === 0 || drinkTotal === 0;
+
+        if (!mealTotal || !drinkTotal) {
+          resultMeal.textContent = mealTotal ? "餐點已就位" : "等你加餐點";
+          resultDrink.textContent = drinkTotal ? "飲料已就位" : "等你加飲料";
+          resultHelp.textContent = !mealTotal && !drinkTotal
+            ? "各加一種餐點和飲料，小飯糰才能開始搭配。"
+            : !mealTotal
+              ? "再加一道餐點，就能抽出完整搭配。"
+              : "再加一杯飲料，就能抽出完整搭配。";
+        } else if (!hasPicked) {
+          resultMeal.textContent = "準備抽選";
+          resultDrink.textContent = "準備搭配";
+          resultHelp.textContent = "按下按鈕，抽出今晚的一餐一飲。";
         }
       }
 
-      form.addEventListener("submit", (event) => {
-        event.preventDefault();
-        const meal = input.value.trim();
-        if (!meal) {
-          showToast("先寫下一道想吃的餐點吧！");
-          input.focus();
-          return;
-        }
-        if (meals.some((item) => item.toLocaleLowerCase() === meal.toLocaleLowerCase())) {
-          showToast("這道已經在清單裡囉！");
-          input.select();
-          return;
-        }
-        meals.push(meal);
-        input.value = "";
-        renderMeals();
-        input.focus();
-      });
+      Object.values(categories).forEach((category) => {
+        category.form.addEventListener("submit", (event) => {
+          event.preventDefault();
+          const value = category.input.value.trim();
+          if (!value) {
+            showToast(`先寫下一${category.unit}${category.label}吧！`);
+            category.input.focus();
+            return;
+          }
+          if (category.items.some((item) => item.toLocaleLowerCase() === value.toLocaleLowerCase())) {
+            showToast(`這${category.label}已經在清單裡囉！`);
+            category.input.select();
+            return;
+          }
+          category.items.push(value);
+          category.input.value = "";
+          lastPick = null;
+          hasPicked = false;
+          renderAll();
+          category.input.focus();
+        });
 
-      clearButton.addEventListener("click", () => {
-        meals.length = 0;
-        lastPick = "";
-        renderMeals();
-        input.focus();
+        category.clear.addEventListener("click", () => {
+          category.items.length = 0;
+          lastPick = null;
+          hasPicked = false;
+          renderAll();
+          category.input.focus();
+        });
       });
 
       pickButton.addEventListener("click", () => {
-        if (!meals.length) return;
-        const choices = meals.length > 1 ? meals.filter((meal) => meal !== lastPick) : meals;
+        const meals = categories.meals.items;
+        const drinks = categories.drinks.items;
+        if (!meals.length || !drinks.length) return;
+
+        const combinations = meals.flatMap((meal) => drinks.map((drink) => ({ meal, drink })));
+        const choices = combinations.length > 1
+          ? combinations.filter((pair) => pair.meal !== lastPick?.meal || pair.drink !== lastPick?.drink)
+          : combinations;
         const chosen = choices[Math.floor(Math.random() * choices.length)];
         lastPick = chosen;
-        resultName.textContent = chosen;
-        resultHelp.textContent = "今晚就決定是它了！祝你吃得開心。";
+        hasPicked = true;
+        resultMeal.textContent = chosen.meal;
+        resultDrink.textContent = chosen.drink;
+        resultHelp.textContent = "今晚就決定是這組了！祝你吃得開心。";
         resultInner.classList.remove("draw-again");
         void resultInner.offsetWidth;
         resultInner.classList.add("draw-again");
       });
 
-      renderMeals();
+      renderAll();
     })();
   </script>
 </body>
