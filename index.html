@@ -235,7 +235,7 @@
     }
 
     .add-button:hover { transform: translateY(-1px); background: #484137; }
-    .add-button:focus-visible, .pick-button:focus-visible, .remove-button:focus-visible, .clear-button:focus-visible {
+    .add-button:focus-visible, .pick-button:focus-visible, .remove-button:focus-visible, .clear-button:focus-visible, .preference-button:focus-visible {
       outline: 3px solid rgba(240, 123, 79, .42);
       outline-offset: 3px;
     }
@@ -293,6 +293,25 @@
     }
 
     .meal-details { min-width: 0; overflow: hidden; }
+
+    .preference-button {
+      display: grid;
+      flex: none;
+      width: 34px;
+      height: 34px;
+      place-items: center;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      background: #f7f4ef;
+      cursor: pointer;
+      font-size: 19px;
+      line-height: 1;
+      transition: background .18s, border-color .18s, transform .18s;
+    }
+
+    .preference-button:hover { transform: scale(1.08); }
+    .preference-button.is-like { border-color: #f4d6a8; background: #fff4d9; }
+    .preference-button.is-dislike { border-color: #e8ded5; background: #f4eee9; }
 
     .meal-price {
       display: block;
@@ -633,7 +652,7 @@
     <section class="intro" id="top" aria-labelledby="page-title">
       <div class="eyebrow"><span aria-hidden="true">✦</span> DINNER DECIDER <span aria-hidden="true">✦</span></div>
       <h1 id="page-title">今晚吃<span class="title-accent">什麼？</span></h1>
-      <p>各選一道餐點和一杯飲料，剩下的就交給小飯糰。<br>兩份清單自由搭配，讓今晚多一點期待。</p>
+      <p>各選一道餐點和一杯飲料，剩下的就交給小飯糰。<br>點品項旁的表情設定喜好，喜歡的更常出現，不喜歡的仍有機會。</p>
     </section>
 
     <section class="workspace" aria-label="晚餐抽選器">
@@ -722,7 +741,7 @@
             </div>
             <p class="budget-note" id="budget-note">留白代表不限制；填寫後，只抽選有價格且合計不超過上限的搭配。</p>
           </div>
-          <p class="hint">金額沒填的品項不會參與預算篩選；預算留白則自由抽選。</p>
+          <p class="hint">點餐點或飲料旁的表情切換偏好：普通 → 喜歡 → 不喜歡。喜好會調整機率，不喜歡也不會被排除。金額沒填的品項不會參與預算篩選；預算留白則自由抽選。</p>
         </div>
       </section>
     </section>
@@ -738,10 +757,10 @@
           label: "餐點",
           unit: "道",
           items: [
-            { name: "日式咖哩飯", price: 140 },
-            { name: "牛肉麵", price: 100 },
-            { name: "石鍋拌飯", price: 160 },
-            { name: "巷口滷肉飯", price: 80 }
+            { name: "日式咖哩飯", price: 140, preference: "neutral" },
+            { name: "牛肉麵", price: 100, preference: "neutral" },
+            { name: "石鍋拌飯", price: 160, preference: "neutral" },
+            { name: "巷口滷肉飯", price: 80, preference: "neutral" }
           ],
           list: document.querySelector("#meal-list"),
           form: document.querySelector("#meal-form"),
@@ -756,10 +775,10 @@
           label: "飲料",
           unit: "杯",
           items: [
-            { name: "冬瓜茶", price: 35 },
-            { name: "無糖綠茶", price: 30 },
-            { name: "珍珠奶茶", price: 80 },
-            { name: "檸檬紅茶", price: 45 }
+            { name: "冬瓜茶", price: 35, preference: "neutral" },
+            { name: "無糖綠茶", price: 30, preference: "neutral" },
+            { name: "珍珠奶茶", price: 80, preference: "neutral" },
+            { name: "檸檬紅茶", price: 45, preference: "neutral" }
           ],
           list: document.querySelector("#drink-list"),
           form: document.querySelector("#drink-form"),
@@ -780,6 +799,11 @@
       const combinationCount = document.querySelector("#combination-count");
       const budgetInput = document.querySelector("#budget-input");
       const toast = document.querySelector("#toast");
+      const preferenceStates = {
+        neutral: { emoji: "😐", label: "普通", weight: 1, next: "like" },
+        like: { emoji: "😊", label: "喜歡", weight: 3, next: "dislike" },
+        dislike: { emoji: "🙁", label: "不喜歡", weight: 0.2, next: "neutral" }
+      };
       let toastTimer;
       let lastPick = null;
       let hasPicked = false;
@@ -809,6 +833,25 @@
           price.textContent = isValidPrice(option.price) ? `${option.price} 元` : "未填價格";
           details.append(name, price);
 
+          const preferenceButton = document.createElement("button");
+          preferenceButton.className = "preference-button";
+          preferenceButton.type = "button";
+          preferenceButton.setAttribute("aria-label", `${option.name}偏好普通，按一下切換`);
+          preferenceButton.title = `${option.name}：普通；按一下切換偏好`;
+          function updatePreferenceButton() {
+            const state = preferenceStates[option.preference] || preferenceStates.neutral;
+            preferenceButton.textContent = state.emoji;
+            preferenceButton.className = `preference-button is-${option.preference || "neutral"}`;
+            preferenceButton.setAttribute("aria-label", `${option.name}偏好${state.label}，按一下切換`);
+            preferenceButton.title = `${option.name}：${state.label}；按一下切換偏好`;
+          }
+          updatePreferenceButton();
+          preferenceButton.addEventListener("click", () => {
+            const state = preferenceStates[option.preference] || preferenceStates.neutral;
+            option.preference = state.next;
+            updatePreferenceButton();
+          });
+
           const remove = document.createElement("button");
           remove.className = "remove-button";
           remove.type = "button";
@@ -821,7 +864,7 @@
             renderAll();
           });
 
-          item.append(details, remove);
+          item.append(details, preferenceButton, remove);
           category.list.append(item);
         });
 
@@ -923,7 +966,7 @@
             category.input.select();
             return;
           }
-          category.items.push({ name: value, price });
+          category.items.push({ name: value, price, preference: "neutral" });
           category.input.value = "";
           category.priceInput.value = "";
           lastPick = null;
@@ -953,7 +996,17 @@
         const choices = eligible.length > 1
           ? eligible.filter((pair) => pair.meal.name !== lastPick?.meal.name || pair.drink.name !== lastPick?.drink.name)
           : eligible;
-        const chosen = choices[Math.floor(Math.random() * choices.length)];
+        const weightedChoices = choices.map((pair) => {
+          const mealPreference = preferenceStates[pair.meal.preference] || preferenceStates.neutral;
+          const drinkPreference = preferenceStates[pair.drink.preference] || preferenceStates.neutral;
+          return { ...pair, weight: mealPreference.weight * drinkPreference.weight };
+        });
+        const totalWeight = weightedChoices.reduce((total, pair) => total + pair.weight, 0);
+        let ticket = Math.random() * totalWeight;
+        const chosen = weightedChoices.find((pair) => {
+          ticket -= pair.weight;
+          return ticket < 0;
+        }) || weightedChoices[weightedChoices.length - 1];
         lastPick = chosen;
         hasPicked = true;
         resultMeal.textContent = chosen.meal.name;
