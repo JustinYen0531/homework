@@ -1,0 +1,639 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fbf7ef">
+  <meta name="description" content="把今晚的選擇交給小飯糰，幫你從餐點清單中抽出一個答案。">
+  <title>今晚吃什麼？｜小飯糰幫你決定</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #29251f;
+      --muted: #81796f;
+      --paper: #fbf7ef;
+      --card: #fffdf9;
+      --line: #eee7db;
+      --orange: #f07b4f;
+      --orange-dark: #d85f36;
+      --green: #637c57;
+      --shadow: 0 18px 50px rgba(74, 53, 31, .09);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        radial-gradient(ellipse at 12% 0%, rgba(247, 206, 146, .21), transparent 32rem),
+        var(--paper);
+      font-family: "Segoe UI", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+    }
+
+    button, input { font: inherit; }
+    button { color: inherit; }
+
+    .page-shell {
+      width: min(1080px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 27px 0 42px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 43px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--ink);
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: .04em;
+      text-decoration: none;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 38px;
+      height: 38px;
+      place-items: center;
+      border: 1px solid #f5d8c9;
+      border-radius: 13px;
+      background: #fff0e7;
+      font-size: 20px;
+    }
+
+    .top-note {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .live-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #83a26e;
+      box-shadow: 0 0 0 4px rgba(131, 162, 110, .13);
+    }
+
+    .intro {
+      max-width: 650px;
+      margin: 0 auto 31px;
+      text-align: center;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 13px;
+      color: var(--orange-dark);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(36px, 6vw, 58px);
+      font-weight: 850;
+      letter-spacing: -.055em;
+      line-height: 1.13;
+    }
+
+    .title-accent { color: var(--orange); }
+
+    .intro p {
+      margin: 13px 0 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.8;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1.02fr) minmax(0, .98fr);
+      gap: 19px;
+      align-items: stretch;
+    }
+
+    .panel {
+      border: 1px solid rgba(235, 226, 213, .9);
+      border-radius: 23px;
+      background: var(--card);
+      box-shadow: var(--shadow);
+    }
+
+    .list-panel { padding: 26px; }
+
+    .panel-heading {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .panel-heading h2 {
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: -.025em;
+    }
+
+    .panel-heading p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .count {
+      flex: none;
+      min-width: 43px;
+      padding: 7px 10px;
+      border: 1px solid #f4e5d7;
+      border-radius: 999px;
+      background: #fff7ef;
+      color: #a7613d;
+      font-size: 12px;
+      font-weight: 750;
+      text-align: center;
+    }
+
+    .add-form {
+      display: flex;
+      gap: 9px;
+      margin-top: 22px;
+    }
+
+    .add-form input {
+      width: 100%;
+      min-width: 0;
+      height: 46px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      outline: none;
+      background: #fff;
+      color: var(--ink);
+      transition: border-color .18s, box-shadow .18s;
+    }
+
+    .add-form input::placeholder { color: #aaa196; }
+
+    .add-form input:focus {
+      border-color: #eda783;
+      box-shadow: 0 0 0 4px rgba(240, 123, 79, .12);
+    }
+
+    .add-button {
+      flex: none;
+      width: 47px;
+      height: 46px;
+      border: 0;
+      border-radius: 12px;
+      background: var(--ink);
+      color: white;
+      cursor: pointer;
+      font-size: 23px;
+      line-height: 1;
+      transition: transform .18s, background .18s;
+    }
+
+    .add-button:hover { transform: translateY(-1px); background: #484137; }
+    .add-button:focus-visible, .pick-button:focus-visible, .remove-button:focus-visible, .clear-button:focus-visible {
+      outline: 3px solid rgba(240, 123, 79, .42);
+      outline-offset: 3px;
+    }
+
+    .list-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 22px 0 11px;
+      color: #6f675e;
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .clear-button {
+      padding: 4px 0;
+      border: 0;
+      background: transparent;
+      color: #9a9084;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .clear-button:hover { color: var(--orange-dark); }
+
+    .meal-list {
+      display: grid;
+      gap: 8px;
+      max-height: 286px;
+      overflow: auto;
+      padding: 1px 3px 2px 0;
+      list-style: none;
+    }
+
+    .meal-item {
+      display: flex;
+      min-height: 46px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 8px 10px 8px 13px;
+      border: 1px solid #f0ebe4;
+      border-radius: 12px;
+      background: #fff;
+      animation: pop-in .22s ease both;
+    }
+
+    .meal-name {
+      overflow: hidden;
+      font-size: 14px;
+      font-weight: 650;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .remove-button {
+      display: grid;
+      flex: none;
+      width: 29px;
+      height: 29px;
+      place-items: center;
+      border: 0;
+      border-radius: 9px;
+      background: transparent;
+      color: #aaa196;
+      cursor: pointer;
+      font-size: 18px;
+      transition: background .18s, color .18s;
+    }
+
+    .remove-button:hover { background: #fff0e9; color: var(--orange-dark); }
+
+    .empty-list {
+      padding: 23px 12px;
+      border: 1px dashed #e8dfd2;
+      border-radius: 13px;
+      color: #998f83;
+      font-size: 13px;
+      line-height: 1.7;
+      text-align: center;
+    }
+
+    .result-panel {
+      position: relative;
+      display: flex;
+      min-height: 430px;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      padding: 30px;
+      border-color: #f5d8c8;
+      background:
+        radial-gradient(ellipse at 50% 45%, rgba(255, 244, 220, .95), transparent 53%),
+        linear-gradient(145deg, #fff2e7 0%, #fffaf2 55%, #fbefdf 100%);
+      text-align: center;
+    }
+
+    .result-panel::before, .result-panel::after {
+      position: absolute;
+      width: 190px;
+      height: 190px;
+      border: 1px solid rgba(222, 159, 116, .17);
+      border-radius: 50%;
+      content: "";
+      pointer-events: none;
+    }
+
+    .result-panel::before { top: -108px; right: -78px; }
+    .result-panel::after { bottom: -125px; left: -82px; width: 235px; height: 235px; }
+
+    .result-inner { position: relative; z-index: 1; width: 100%; }
+
+    .mascot {
+      display: grid;
+      width: 106px;
+      height: 106px;
+      margin: 0 auto 17px;
+      place-items: center;
+      border: 1px solid rgba(255, 255, 255, .8);
+      border-radius: 35px;
+      background: rgba(255, 255, 255, .68);
+      box-shadow: 0 12px 26px rgba(133, 83, 42, .1);
+      font-size: 58px;
+      transform: rotate(-5deg);
+    }
+
+    .result-kicker {
+      margin: 0;
+      color: #9a765d;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .16em;
+    }
+
+    .result-name {
+      min-height: 48px;
+      margin: 9px 0 0;
+      color: #473a2f;
+      font-size: clamp(25px, 3vw, 34px);
+      font-weight: 850;
+      letter-spacing: -.04em;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    .result-help {
+      min-height: 24px;
+      margin: 8px 0 21px;
+      color: #8b7d6e;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .pick-button {
+      display: inline-flex;
+      min-height: 51px;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      padding: 0 23px;
+      border: 0;
+      border-radius: 14px;
+      background: var(--orange);
+      box-shadow: 0 8px 17px rgba(216, 95, 54, .23);
+      color: #fff;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 800;
+      transition: transform .18s, box-shadow .18s, background .18s;
+    }
+
+    .pick-button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      background: var(--orange-dark);
+      box-shadow: 0 11px 20px rgba(216, 95, 54, .27);
+    }
+
+    .pick-button:active:not(:disabled) { transform: translateY(0); }
+    .pick-button:disabled { cursor: not-allowed; opacity: .48; box-shadow: none; }
+
+    .hint {
+      margin: 15px 0 0;
+      color: #9a8b7c;
+      font-size: 11px;
+    }
+
+    .toast {
+      position: fixed;
+      z-index: 5;
+      right: 20px;
+      bottom: 20px;
+      max-width: calc(100% - 40px);
+      padding: 12px 16px;
+      border: 1px solid rgba(255, 255, 255, .16);
+      border-radius: 12px;
+      background: #332c25;
+      box-shadow: 0 12px 32px rgba(41, 37, 31, .2);
+      color: #fff;
+      font-size: 13px;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(8px);
+      transition: opacity .2s, transform .2s;
+    }
+
+    .toast.is-visible { opacity: 1; transform: translateY(0); }
+
+    .footer {
+      display: flex;
+      justify-content: center;
+      margin-top: 22px;
+      color: #9b9185;
+      font-size: 11px;
+      letter-spacing: .04em;
+    }
+
+    .draw-again .mascot { animation: wiggle .55s ease; }
+    .draw-again .result-name { animation: reveal .35s ease both; }
+
+    @keyframes pop-in {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes wiggle {
+      0%, 100% { transform: rotate(-5deg) scale(1); }
+      28% { transform: rotate(7deg) scale(1.05); }
+      56% { transform: rotate(-8deg) scale(1.05); }
+      78% { transform: rotate(3deg) scale(1.02); }
+    }
+
+    @keyframes reveal {
+      from { opacity: .25; transform: translateY(7px) scale(.97); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @media (max-width: 740px) {
+      .page-shell { width: min(540px, calc(100% - 30px)); padding-top: 19px; }
+      .topbar { margin-bottom: 34px; }
+      .workspace { grid-template-columns: 1fr; }
+      .result-panel { min-height: 355px; order: -1; }
+      .list-panel { padding: 22px; }
+    }
+
+    @media (max-width: 380px) {
+      .top-note { font-size: 11px; }
+      .list-panel { padding: 18px; }
+      .result-panel { min-height: 330px; padding: 23px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page-shell">
+    <header class="topbar">
+      <a class="brand" href="#top" aria-label="今晚吃什麼，回到頁面頂端">
+        <span class="brand-mark" aria-hidden="true">🍙</span>
+        <span>小飯糰晚餐部</span>
+      </a>
+      <div class="top-note"><span class="live-dot" aria-hidden="true"></span>今晚的選擇困難，交給我</div>
+    </header>
+
+    <section class="intro" id="top" aria-labelledby="page-title">
+      <div class="eyebrow"><span aria-hidden="true">✦</span> DINNER DECIDER <span aria-hidden="true">✦</span></div>
+      <h1 id="page-title">今晚吃<span class="title-accent">什麼？</span></h1>
+      <p>把腦中的選項放進清單，剩下的就交給小飯糰。<br>少一點煩惱，多一點期待開飯的心情。</p>
+    </section>
+
+    <section class="workspace" aria-label="晚餐抽選器">
+      <section class="panel list-panel" aria-labelledby="list-title">
+        <div class="panel-heading">
+          <div>
+            <h2 id="list-title">今天想吃的</h2>
+            <p>先收集幾個選項，選擇困難就交給我！</p>
+          </div>
+          <span class="count" id="meal-count" aria-label="餐點數量">4 道</span>
+        </div>
+
+        <form class="add-form" id="add-form">
+          <label class="visually-hidden" for="meal-input">輸入想吃的餐點</label>
+          <input id="meal-input" name="meal" maxlength="30" placeholder="例如：巷口的咖哩飯" autocomplete="off">
+          <button class="add-button" type="submit" aria-label="加入餐點" title="加入餐點">+</button>
+        </form>
+
+        <div class="list-label">
+          <span>你的候選清單</span>
+          <button class="clear-button" id="clear-button" type="button">全部清除</button>
+        </div>
+        <ul class="meal-list" id="meal-list" aria-label="候選餐點"></ul>
+        <div class="empty-list" id="empty-list" hidden>清單還空空的，先加一道你想吃的吧。<br>也可以直接試試下面的範例餐點！</div>
+      </section>
+
+      <section class="panel result-panel" aria-labelledby="result-kicker">
+        <div class="result-inner" id="result-inner">
+          <div class="mascot" aria-hidden="true">🍙</div>
+          <p class="result-kicker" id="result-kicker">小飯糰的晚餐提案</p>
+          <p class="result-name" id="result-name" aria-live="polite">準備好要開飯了嗎？</p>
+          <p class="result-help" id="result-help">加入或保留餐點，按下按鈕揭曉今晚的答案。</p>
+          <button class="pick-button" id="pick-button" type="button">
+            <span aria-hidden="true">✦</span><span>幫我決定！</span>
+          </button>
+          <p class="hint">不喜歡這個答案？再抽一次就好。</p>
+        </div>
+      </section>
+    </section>
+
+    <footer class="footer">今晚好好吃飯，明天再煩惱明天的事。</footer>
+  </main>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (() => {
+      const meals = ["日式咖哩飯", "牛肉麵", "石鍋拌飯", "巷口滷肉飯"];
+      const list = document.querySelector("#meal-list");
+      const form = document.querySelector("#add-form");
+      const input = document.querySelector("#meal-input");
+      const count = document.querySelector("#meal-count");
+      const empty = document.querySelector("#empty-list");
+      const clearButton = document.querySelector("#clear-button");
+      const pickButton = document.querySelector("#pick-button");
+      const resultName = document.querySelector("#result-name");
+      const resultHelp = document.querySelector("#result-help");
+      const resultInner = document.querySelector("#result-inner");
+      const toast = document.querySelector("#toast");
+      let toastTimer;
+      let lastPick = "";
+
+      function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add("is-visible");
+        window.clearTimeout(toastTimer);
+        toastTimer = window.setTimeout(() => toast.classList.remove("is-visible"), 2200);
+      }
+
+      function renderMeals() {
+        list.replaceChildren();
+        meals.forEach((meal, index) => {
+          const item = document.createElement("li");
+          item.className = "meal-item";
+
+          const name = document.createElement("span");
+          name.className = "meal-name";
+          name.textContent = meal;
+
+          const remove = document.createElement("button");
+          remove.className = "remove-button";
+          remove.type = "button";
+          remove.textContent = "×";
+          remove.setAttribute("aria-label", `移除${meal}`);
+          remove.addEventListener("click", () => {
+            meals.splice(index, 1);
+            if (lastPick === meal) lastPick = "";
+            renderMeals();
+          });
+
+          item.append(name, remove);
+          list.append(item);
+        });
+
+        const total = meals.length;
+        count.textContent = `${total} 道`;
+        count.setAttribute("aria-label", `目前有 ${total} 道餐點`);
+        empty.hidden = total !== 0;
+        list.hidden = total === 0;
+        clearButton.hidden = total === 0;
+        pickButton.disabled = total === 0;
+
+        if (total === 0) {
+          resultName.textContent = "清單空空的";
+          resultHelp.textContent = "加一道餐點進來，小飯糰就能開始抽選。";
+        } else if (resultName.textContent === "清單空空的") {
+          resultName.textContent = "準備好要開飯了嗎？";
+          resultHelp.textContent = "按下按鈕，揭曉今晚的答案。";
+        }
+      }
+
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const meal = input.value.trim();
+        if (!meal) {
+          showToast("先寫下一道想吃的餐點吧！");
+          input.focus();
+          return;
+        }
+        if (meals.some((item) => item.toLocaleLowerCase() === meal.toLocaleLowerCase())) {
+          showToast("這道已經在清單裡囉！");
+          input.select();
+          return;
+        }
+        meals.push(meal);
+        input.value = "";
+        renderMeals();
+        input.focus();
+      });
+
+      clearButton.addEventListener("click", () => {
+        meals.length = 0;
+        lastPick = "";
+        renderMeals();
+        input.focus();
+      });
+
+      pickButton.addEventListener("click", () => {
+        if (!meals.length) return;
+        const choices = meals.length > 1 ? meals.filter((meal) => meal !== lastPick) : meals;
+        const chosen = choices[Math.floor(Math.random() * choices.length)];
+        lastPick = chosen;
+        resultName.textContent = chosen;
+        resultHelp.textContent = "今晚就決定是它了！祝你吃得開心。";
+        resultInner.classList.remove("draw-again");
+        void resultInner.offsetWidth;
+        resultInner.classList.add("draw-again");
+      });
+
+      renderMeals();
+    })();
+  </script>
+</body>
+</html>
